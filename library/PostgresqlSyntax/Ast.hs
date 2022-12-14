@@ -309,7 +309,7 @@ data SimpleSelect
 --   |  DISTINCT ON '(' expr_list ')'
 -- @
 data Targeting
-  = NormalTargeting TargetList
+  = NormalTargeting (Maybe HsTarget) TargetList
   | AllTargeting (Maybe TargetList)
   | DistinctTargeting (Maybe ExprList) TargetList
   deriving (Show, Generic, Eq, Ord)
@@ -324,19 +324,41 @@ data Targeting
 type TargetList = NonEmpty TargetEl
 
 -- |
+-- $hsRec { hsField = target_el }
+-- $hsFunc (target_el)
+data HsTarget = HsRecord Text
+    | HsFunc Text
+    deriving (Eq, Show, Generic, Ord)
+
+-- |
 -- ==== References
 -- @
 -- target_el:
+--   |  hs_expr
 --   |  a_expr AS ColLabel
 --   |  a_expr IDENT
 --   |  a_expr
 --   |  '*'
 -- @
 data TargetEl
-  = AliasedExprTargetEl AExpr Ident
+  =
+    HsExprTargetEl HsExprField
+  | AliasedExprTargetEl AExpr Ident
   | ImplicitlyAliasedExprTargetEl AExpr Ident
   | ExprTargetEl AExpr
   | AsteriskTargetEl
+  deriving (Show, Generic, Eq, Ord)
+
+-- | Either associated with a field in case of records
+-- or associated with a number
+-- recConstr { hs_field = targetel }
+-- ----------- ^^^^^^^^^^^^^^^^^^^ -----------
+-- targetel
+-- Just HsFieldName if we are initialising a field
+data HsExprField = HsField (Maybe HsFieldName) TargetEl
+  deriving (Show, Generic, Eq, Ord)
+
+newtype HsFieldName = HsFieldName Text
   deriving (Show, Generic, Eq, Ord)
 
 -- |

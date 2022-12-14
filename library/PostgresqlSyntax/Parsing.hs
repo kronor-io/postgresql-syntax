@@ -417,7 +417,11 @@ materialized =
 
 targeting = distinct <|> allWithTargetList <|> all <|> normal
   where
-    normal = NormalTargeting <$> targetList
+    normal = do
+      asum
+        [ (\(hsTarg, elts) -> NormalTargeting (Just hsTarg) elts) <$> hsTargetExpr
+        , NormalTargeting Nothing <$> targetList
+        ]
     allWithTargetList = do
       keyword "all"
       space1
@@ -431,7 +435,42 @@ targeting = distinct <|> allWithTargetList <|> all <|> normal
       _targetList <- targetList
       return (DistinctTargeting _optOn _targetList)
 
-targetList = sep1 commaSeparator targetEl
+targetList :: HeadedParsec Void Text (NonEmpty TargetEl)
+targetList = asum [hsTargetList, sqlTargetList]
+
+sqlTargetList :: HeadedParsec Void Text (NonEmpty TargetEl)
+sqlTargetList = sep1 commaSeparator targetEl
+
+hsTargetList ::  HeadedParsec Void Text (NonEmpty TargetEl)
+hsTargetList = sep1 commaSeparator hsTargetEl
+
+-- | Handle sql expressions targeting haskell functions / constructors
+--
+
+hsTargetExpr :: HeadedParsec Void Text (HsTarget, NonEmpty TargetEl)
+hsTargetExpr =
+  label "hsTarget" $
+    asum
+      [ do
+          char '$'
+          consName <- takeWhile1P (Just "Haskell constructor") (\x -> not (isSpace x || x == '{'))
+          space
+          char '{'
+          elts <- hsTargetList
+          space
+          char '}'
+          pure (HsRecord consName, elts)
+      ]
+
+hsTargetEl :: HeadedParsec Void Text TargetEl
+hsTargetEl =
+  label "HsTargetEl" $ do
+    space
+    fieldName <- takeWhile1P (Just "Haskell field name") (\x -> not (isSpace x || x == '='))
+    space
+    char '='
+    space
+    HsExprTargetEl . HsField (Just (HsFieldName fieldName)) <$> targetEl
 
 -- |
 -- >>> testParser targetEl "a.b as c"
