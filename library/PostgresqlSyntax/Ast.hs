@@ -309,10 +309,48 @@ data SimpleSelect
 --   |  DISTINCT ON '(' expr_list ')'
 -- @
 data Targeting
-  = NormalTargeting (Maybe HsTarget) TargetList
+  = NormalTargeting HsTargetList
   | AllTargeting (Maybe TargetList)
   | DistinctTargeting (Maybe ExprList) TargetList
   deriving (Show, Generic, Eq, Ord)
+
+-- |
+-- @
+-- hs_target_list:
+--   | hs_target_el
+--   | hs_target_list ',' hs_target_el
+-- @
+type HsTargetList = NonEmpty HsTargetEl
+
+-- |
+-- @
+-- hs_target_el:
+--   | hs_rec_target
+--   | hs_func_target
+--   | target_el
+--
+-- ',' separator is implied for multiple fields
+-- or arguments
+--
+-- hs_rec_target:
+--   '$' rec_name '{' hs_field '=' hs_target_el '}'
+--
+-- hs_func_target:
+--   '$' func_name '(' hs_target_el ')'
+-- @
+data HsTargetEl
+  = HsRecTargetEl
+      Text -- ^ record constructor or update name
+      (NonEmpty HsFieldTargetEl)
+  | HsFuncTargetEl
+      Text -- ^ function or constructor name
+      HsTargetList
+  | SqlTargetEl TargetEl
+  deriving (Eq, Show, Generic, Ord)
+
+data HsFieldTargetEl
+  = HsFieldEl Text HsTargetEl
+  deriving (Eq, Show, Generic, Ord)
 
 -- |
 -- ==== References
@@ -324,41 +362,19 @@ data Targeting
 type TargetList = NonEmpty TargetEl
 
 -- |
--- $hsRec { hsField = target_el }
--- $hsFunc (target_el)
-data HsTarget = HsRecord Text
-    | HsFunc Text
-    deriving (Eq, Show, Generic, Ord)
-
--- |
 -- ==== References
 -- @
 -- target_el:
---   |  hs_expr
 --   |  a_expr AS ColLabel
 --   |  a_expr IDENT
 --   |  a_expr
 --   |  '*'
 -- @
 data TargetEl
-  =
-    HsExprTargetEl HsExprField
-  | AliasedExprTargetEl AExpr Ident
+  = AliasedExprTargetEl AExpr Ident
   | ImplicitlyAliasedExprTargetEl AExpr Ident
   | ExprTargetEl AExpr
   | AsteriskTargetEl
-  deriving (Show, Generic, Eq, Ord)
-
--- | Either associated with a field in case of records
--- or associated with a number
--- recConstr { hs_field = targetel }
--- ----------- ^^^^^^^^^^^^^^^^^^^ -----------
--- targetel
--- Just HsFieldName if we are initialising a field
-data HsExprField = HsField (Maybe HsFieldName) TargetEl
-  deriving (Show, Generic, Eq, Ord)
-
-newtype HsFieldName = HsFieldName Text
   deriving (Show, Generic, Eq, Ord)
 
 -- |
