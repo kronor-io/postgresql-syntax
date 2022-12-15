@@ -460,6 +460,15 @@ hsTargetExpr =
           space
           char '}'
           pure (HsRecord consName, elts)
+      , do
+          char '$'
+          funcName <- takeWhile1P (Just "Haskell function") (\x -> not (isSpace x || x == '('))
+          space
+          char '('
+          elts <- targetList
+          space
+          char ')'
+          pure (HsFunc funcName, elts)
       ]
 
 hsTargetEl :: HeadedParsec Void Text TargetEl
