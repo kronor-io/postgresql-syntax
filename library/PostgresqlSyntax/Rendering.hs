@@ -251,16 +251,26 @@ selectBinOp = \case
   ExceptSelectBinOp -> "EXCEPT"
 
 targeting = \case
-  NormalTargeting _ a -> targetList a
+  NormalTargeting a -> targetList (hsTargetElToTargetList =<< a)
   AllTargeting a -> "ALL" <> suffixMaybe targetList a
   DistinctTargeting a b -> "DISTINCT" <> suffixMaybe onExpressionsClause a <> " " <> commaNonEmpty targetEl b
+
+hsTargetElToTargetList :: HsTargetEl -> TargetList
+hsTargetElToTargetList = \case
+  HsRecTargetEl _ netl -> hsFieldTargetElToTargetEl =<< netl
+  HsFuncTargetEl _ nehtl -> hsTargetElToTargetList =<< nehtl
+  SqlTargetEl tl -> pure tl
+
+hsFieldTargetElToTargetEl :: HsFieldTargetEl -> TargetList
+hsFieldTargetElToTargetEl (HsFieldEl _ tl) =
+  hsTargetElToTargetList tl
+
 
 targetList = commaNonEmpty targetEl
 
 onExpressionsClause a = "ON (" <> commaNonEmpty aExpr a <> ")"
 
 targetEl = \case
-  HsExprTargetEl (HsField _ tl) -> targetEl tl
   AliasedExprTargetEl a b -> aExpr a <> " AS " <> ident b
   ImplicitlyAliasedExprTargetEl a b -> aExpr a <> " " <> ident b
   ExprTargetEl a -> aExpr a

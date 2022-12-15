@@ -417,11 +417,7 @@ materialized =
 
 targeting = distinct <|> allWithTargetList <|> all <|> normal
   where
-    normal = do
-      asum
-        [ (\(hsTarg, elts) -> NormalTargeting (Just hsTarg) elts) <$> hsTargetExpr
-        , NormalTargeting Nothing <$> targetList
-        ]
+    normal = NormalTargeting <$> hsTargetList
     allWithTargetList = do
       keyword "all"
       space1
@@ -436,50 +432,58 @@ targeting = distinct <|> allWithTargetList <|> all <|> normal
       return (DistinctTargeting _optOn _targetList)
 
 targetList :: HeadedParsec Void Text (NonEmpty TargetEl)
-targetList = asum [hsTargetList, sqlTargetList]
+targetList = sep1 commaSeparator targetEl
 
-sqlTargetList :: HeadedParsec Void Text (NonEmpty TargetEl)
-sqlTargetList = sep1 commaSeparator targetEl
-
-hsTargetList ::  HeadedParsec Void Text (NonEmpty TargetEl)
+hsTargetList ::  HeadedParsec Void Text (NonEmpty HsTargetEl)
 hsTargetList = sep1 commaSeparator hsTargetEl
 
 -- | Handle sql expressions targeting haskell functions / constructors
 --
-
-hsTargetExpr :: HeadedParsec Void Text (HsTarget, NonEmpty TargetEl)
-hsTargetExpr =
+hsTargetEl :: HeadedParsec Void Text HsTargetEl
+hsTargetEl =
   label "hsTarget" $
     asum
-      [ do
-          char '$'
-          consName <- takeWhile1P (Just "Haskell constructor") (\x -> not (isSpace x || x == '{'))
-          space
-          char '{'
-          elts <- hsTargetList
-          space
-          char '}'
-          pure (HsRecord consName, elts)
-      , do
-          char '$'
-          funcName <- takeWhile1P (Just "Haskell function") (\x -> not (isSpace x || x == '('))
-          space
-          char '('
-          elts <- targetList
-          space
-          char ')'
-          pure (HsFunc funcName, elts)
+      [ hsRecTarget
+      , hsFuncTarget
+      , SqlTargetEl <$> targetEl
       ]
 
-hsTargetEl :: HeadedParsec Void Text TargetEl
-hsTargetEl =
-  label "HsTargetEl" $ do
+hsRecTarget :: HeadedParsec Void Text HsTargetEl
+hsRecTarget =
+  label "hsRecTarget" $ do
+    char '$'
+    recConsName <- takeWhile1P (Just "Haskell record constructor") (\x -> not (isSpace x || x == '{'))
+    space
+    char '{'
+    elts <- hsFieldTargetList
+    space
+    char '}'
+    pure $ HsRecTargetEl recConsName elts
+
+hsFieldTargetList :: HeadedParsec Void Text (NonEmpty HsFieldTargetEl)
+hsFieldTargetList = sep1 commaSeparator hsFieldTargetEl
+
+hsFieldTargetEl :: HeadedParsec Void Text HsFieldTargetEl
+hsFieldTargetEl =
+  label "hsFieldTargetEl" $ do
     space
     fieldName <- takeWhile1P (Just "Haskell field name") (\x -> not (isSpace x || x == '='))
     space
     char '='
     space
-    HsExprTargetEl . HsField (Just (HsFieldName fieldName)) <$> targetEl
+    HsFieldEl fieldName <$> hsTargetEl
+
+hsFuncTarget :: HeadedParsec Void Text HsTargetEl
+hsFuncTarget =
+  label "hsFuncTarget" $ do
+    char '$'
+    funcName <- takeWhile1P (Just "Haskell function") (\x -> not (isSpace x || x == '('))
+    space
+    char '('
+    elts <- hsTargetList
+    space
+    char ')'
+    pure $ HsFuncTargetEl funcName elts
 
 -- |
 -- >>> testParser targetEl "a.b as c"
