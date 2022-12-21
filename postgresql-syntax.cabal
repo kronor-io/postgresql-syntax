@@ -70,6 +70,7 @@ library
     PostgresqlSyntax.Ast
     PostgresqlSyntax.KeywordSet
     PostgresqlSyntax.Parsing
+    PostgresqlSyntax.Renaming
     PostgresqlSyntax.Rendering
     PostgresqlSyntax.Validation
 
@@ -92,6 +93,8 @@ library
     text >=1 && <3,
     text-builder >=1 && <1.1,
     unordered-containers >=0.2.16 && <0.3,
+    mtl >= 2.3.1 && < 2.5,
+    containers >= 0.6.8 && < 0.9
 
 test-suite tasty-test
   import: base-settings
