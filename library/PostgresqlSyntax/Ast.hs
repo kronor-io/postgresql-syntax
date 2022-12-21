@@ -1867,7 +1867,7 @@ type IntervalSecond = Maybe Int64
 -- @
 -- IDENT
 -- @
-data Ident = QuotedIdent Text | UnquotedIdent Text
+data Ident = QuotedIdent Text | UnquotedIdent Text | HsIdent Text
   deriving (Show, Generic, Eq, Ord)
 
 -- |

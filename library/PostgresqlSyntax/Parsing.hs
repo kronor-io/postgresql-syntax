@@ -1137,9 +1137,9 @@ customizedBExpr cExpr = suffixRec base suffix
 
 cExpr = customizedCExpr columnref
 
-customizedCExpr columnref =
+customizedCExprWith columnref paramIndirection =
   asum
-    [ ParamCExpr <$> (char '$' *> decimal <* endHead) <*> optional (space *> indirection),
+    [ ParamCExpr <$> (char '$' *> decimal <* endHead) <*> optional (space *> paramIndirection),
       CaseCExpr <$> caseExpr,
       ImplicitRowCExpr <$> implicitRow,
       ExplicitRowCExpr <$> explicitRow,
@@ -1163,6 +1163,8 @@ customizedCExpr columnref =
       FuncCExpr <$> funcExpr,
       ColumnrefCExpr <$> columnref
     ]
+
+customizedCExpr columnref = customizedCExprWith columnref hsIndirection
 
 -- *
 
@@ -1903,6 +1905,12 @@ colLabel =
   label "column label" $
     keywordNameFromSet KeywordSet.keyword <|> ident
 
+hsColLabel =
+  label "haskell column label" $ do
+    char '$'
+    hsIdent <- takeWhile1P (Just "Haskell column identifier") (\x -> not (isSpace x || x == ':'))
+    pure (HsIdent hsIdent)
+
 -- |
 -- >>> testParser qualifiedName "a.b"
 -- IndirectedQualifiedName (UnquotedIdent "a") (AttrNameIndirectionEl (UnquotedIdent "b") :| [])
@@ -1979,6 +1987,8 @@ typeFunctionName =
 -- @
 indirection = some indirectionEl
 
+hsIndirection = some (indirectionElWith (asum [attrName, hsColLabel]))
+
 -- |
 -- ==== References
 -- @
@@ -1991,13 +2001,13 @@ indirection = some indirectionEl
 --   | a_expr
 --   | EMPTY
 -- @
-indirectionEl =
+indirectionElWith attrParser =
   asum
     [ do
         char '.'
         endHead
         space
-        AllIndirectionEl <$ char '*' <|> AttrNameIndirectionEl <$> attrName,
+        AllIndirectionEl <$ char '*' <|> AttrNameIndirectionEl <$> attrParser,
       do
         char '['
         endHead
@@ -2026,6 +2036,8 @@ indirectionEl =
         char ']'
         return _a
     ]
+
+indirectionEl = indirectionElWith attrName
 
 -- |
 -- ==== References

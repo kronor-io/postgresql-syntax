@@ -837,6 +837,7 @@ columnref (Columnref a b) = colId a <> foldMap indirection b
 ident = \case
   QuotedIdent a -> char7 '"' <> text (Text.replace "\"" "\"\"" a) <> char7 '"'
   UnquotedIdent a -> text a
+  HsIdent _ -> error "HsIdent should be handled before here"
 
 qualifiedName = \case
   SimpleQualifiedName a -> ident a
@@ -845,6 +846,7 @@ qualifiedName = \case
 indirection = foldMap indirectionEl
 
 indirectionEl = \case
+  AttrNameIndirectionEl (HsIdent _) -> mempty
   AttrNameIndirectionEl a -> "." <> ident a
   AllIndirectionEl -> ".*"
   ExprIndirectionEl a -> "[" <> aExpr a <> "]"
