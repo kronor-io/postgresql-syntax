@@ -153,10 +153,27 @@ terminalSimpleSelect = pure (NormalSimpleSelect Nothing Nothing Nothing Nothing 
 
 targeting =
   choice
-    [ NormalTargeting <$> targetList,
+    [ NormalTargeting <$> hsTargetList,
       AllTargeting <$> maybe targetList,
       DistinctTargeting <$> maybe (nonEmpty (Range.exponential 1 8) aExpr) <*> targetList
     ]
+
+hsTargetList = nonEmpty (Range.exponential 1 8) hsTargetEl
+
+hsTargetEl = SqlTargetEl <$> targetEl
+{-
+  choice
+    [ HsRecTargetEl <$> text (Range.linear 1 30) quotedChar <*> hsFieldTargetList
+    , HsFuncTargetEl <$> text (Range.linear 1 30) quotedChar <*> hsTargetList
+    , SqlTargetEl <$> targetEl
+    ]
+-}
+
+hsFieldTargetList =
+  nonEmpty (Range.exponential 1 8) hsFieldEl
+
+hsFieldEl =
+  HsFieldEl <$> text (Range.linear 1 30) quotedChar <*> hsTargetEl
 
 targetList = nonEmpty (Range.exponential 1 8) targetEl
 
