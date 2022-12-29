@@ -480,6 +480,7 @@ hsFuncTarget =
     funcName <- takeWhile1P (Just "Haskell function") (\x -> not (isSpace x || x == '('))
     space
     char '('
+    space
     elts <- (NonEmpty.toList <$> hsTargetList) <|> pure []
     space
     char ')'
