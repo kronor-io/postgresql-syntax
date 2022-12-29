@@ -251,17 +251,23 @@ selectBinOp = \case
   ExceptSelectBinOp -> "EXCEPT"
 
 targeting = \case
-  NormalTargeting a -> targetList (hsTargetElToTargetList =<< a)
+  NormalTargeting a ->
+    case (NonEmpty.nonEmpty . catMaybes . NonEmpty.toList) (hsTargetElToTargetList <$> a) of
+      Nothing -> mempty
+      Just nehts -> targetList (join nehts)
   AllTargeting a -> "ALL" <> suffixMaybe targetList a
   DistinctTargeting a b -> "DISTINCT" <> suffixMaybe onExpressionsClause a <> " " <> commaNonEmpty targetEl b
 
-hsTargetElToTargetList :: HsTargetEl -> TargetList
+hsTargetElToTargetList :: HsTargetEl -> Maybe TargetList
 hsTargetElToTargetList = \case
-  HsRecTargetEl _ netl -> hsFieldTargetElToTargetEl =<< netl
-  HsFuncTargetEl _ nehtl -> hsTargetElToTargetList =<< nehtl
-  SqlTargetEl tl -> pure tl
+  HsRecTargetEl _ netl -> (fmap join . NonEmpty.nonEmpty . catMaybes . NonEmpty.toList) (hsFieldTargetElToTargetEl <$> netl)
+  HsFuncTargetEl _ ehtl ->
+    case NonEmpty.nonEmpty ehtl of
+      Nothing -> Nothing
+      Just nehtl -> (fmap join . NonEmpty.nonEmpty . catMaybes . NonEmpty.toList) (hsTargetElToTargetList <$> nehtl)
+  SqlTargetEl tl -> Just (pure tl)
 
-hsFieldTargetElToTargetEl :: HsFieldTargetEl -> TargetList
+hsFieldTargetElToTargetEl :: HsFieldTargetEl -> Maybe TargetList
 hsFieldTargetElToTargetEl (HsFieldEl _ tl) =
   hsTargetElToTargetList tl
 

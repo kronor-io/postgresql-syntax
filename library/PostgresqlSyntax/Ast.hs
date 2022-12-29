@@ -344,7 +344,7 @@ data HsTargetEl
       (NonEmpty HsFieldTargetEl)
   | HsFuncTargetEl
       Text -- ^ function or constructor name
-      HsTargetList
+      [HsTargetEl]
   | SqlTargetEl TargetEl
   deriving (Eq, Show, Generic, Ord)
 
