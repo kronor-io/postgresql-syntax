@@ -694,8 +694,11 @@ qualAllOp =
       AnyQualAllOp <$> anyOperator
     ]
 
+elementL :: MonadGen m => [a] -> m a
+elementL = element
+
 op = do
-  a <- text (Range.exponential 1 7) (element "+-*/<>=~!@#%^&|`?")
+  a <- text (Range.exponential 1 7) (elementL "+-*/<>=~!@#%^&|`?")
   case Validation.op a of
     Nothing -> return a
     _ -> discard
@@ -758,8 +761,8 @@ aexprConst =
     [ IAexprConst <$> iconst,
       FAexprConst <$> fconst,
       SAexprConst <$> sconst,
-      BAexprConst <$> text (Range.exponential 1 100) (element "01"),
-      XAexprConst <$> text (Range.exponential 1 100) (element "0123456789abcdefABCDEF"),
+      BAexprConst <$> text (Range.exponential 1 100) (elementL "01"),
+      XAexprConst <$> text (Range.exponential 1 100) (elementL "0123456789abcdefABCDEF"),
       FuncAexprConst <$> funcName <*> maybe funcConstArgs <*> sconst,
       ConstTypenameAexprConst <$> constTypename <*> sconst,
       StringIntervalAexprConst <$> sconst <*> maybe interval,
