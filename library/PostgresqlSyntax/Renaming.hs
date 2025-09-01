@@ -10,7 +10,7 @@ import PostgresqlSyntax.Ast
 import qualified PostgresqlSyntax.Extras.NonEmpty as NonEmpty
 import PostgresqlSyntax.Extras.TextBuilder
 import PostgresqlSyntax.Prelude hiding (aExpr, bit, fromList, many, option, sortBy, try)
-import Text.Builder hiding (char7, doubleDec, int64Dec, intDec)
+import TextBuilder hiding (char7, doubleDec, int64Dec, intDec)
 import Control.Monad.State (State, get, put)
 import qualified Data.Map.Strict as Map
 import Data.Map.Strict (Map)

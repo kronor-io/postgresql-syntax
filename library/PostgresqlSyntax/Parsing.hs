@@ -36,6 +36,7 @@ import PostgresqlSyntax.Ast
 import PostgresqlSyntax.Extras.HeadedMegaparsec hiding (run)
 import qualified PostgresqlSyntax.Extras.HeadedMegaparsec as Extras
 import qualified PostgresqlSyntax.Extras.NonEmpty as NonEmpty
+import qualified Data.List.NonEmpty as NonEmpty
 import qualified PostgresqlSyntax.KeywordSet as KeywordSet
 import qualified PostgresqlSyntax.Predicate as Predicate
 import PostgresqlSyntax.Prelude hiding (bit, expr, filter, fromList, head, many, option, some, sortBy, tail, try)

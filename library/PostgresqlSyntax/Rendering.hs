@@ -10,6 +10,7 @@ import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Text
 import PostgresqlSyntax.Ast
 import qualified PostgresqlSyntax.Extras.NonEmpty as NonEmpty
+import qualified Data.List.NonEmpty as NonEmpty
 import PostgresqlSyntax.Extras.TextBuilder
 import PostgresqlSyntax.Prelude hiding (aExpr, bit, fromList, many, option, sortBy, try)
 import TextBuilder
