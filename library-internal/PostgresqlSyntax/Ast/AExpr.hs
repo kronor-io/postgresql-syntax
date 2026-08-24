@@ -217,9 +217,9 @@ customizedParser settings cExpr = suffixRec base suffix
       asum
         [ overlapsSuffix settings a,
           do
-            Parsers.space1
+            Parsers.space
             b <- Parser.wrapToHead (parser settings)
-            Parsers.space1
+            Parsers.space
             c <- Parser.wrapToHead (parser settings)
             Parsers.space
             d <- Left <$> Parser.wrapToHead (parser settings) <|> Right <$> Parsers.inParens aExpr

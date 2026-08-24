@@ -19,6 +19,9 @@ spec = do
   itSatisfiesRefines @SelectWithParens @AExpr
   itSatisfiesArbitrary @AExpr
   describe "Postgres grammar conformance" $ do
+    describe "accepts subquery operators without surrounding whitespace" $ do
+      itParses @AExpr "a=ANY(b)"
+
     -- gram.y:15985,15987 have only @a_expr qual_Op a_expr@ and
     -- @qual_Op a_expr@ — the postfix @a_expr qual_Op@ form was removed
     -- from Postgres in v14.
