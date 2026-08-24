@@ -35,7 +35,7 @@ data JoinedTable
 
 -- |
 -- Parsing delegates to 'parseExtended' over the 'Extends' instance
--- below — a bare @table_ref@ parse is greedy, absorbing any trailing @CROSS
+-- below - a bare @table_ref@ parse is greedy, absorbing any trailing @CROSS
 -- JOIN@\/@JOIN@\/@NATURAL JOIN@ continuation into itself, so a
 -- @joined_table@ is never reachable as a bare, zero-extension 'TableRef';
 -- it always needs at least one. Failing that, the only remaining
@@ -57,7 +57,7 @@ instance IsAst JoinedTable where
 --   | '(' joined_table ')'
 -- @
 --
--- It still recurses — just not on the left, since the opening parenthesis
+-- It still recurses - just not on the left, since the opening parenthesis
 -- has to be consumed first. "PostgresqlSyntax.Ast.TableRef" reaches it
 -- through this class method, which is why 'JoinedTable' needs no helper
 -- export.
@@ -84,7 +84,7 @@ instance Qc.Arbitrary JoinedTable where
 -- 'TableRef' is the non-recursive base (@β@, its own 'parseBase'). All
 -- three join kinds sit at the same precedence (@%left JOIN CROSS LEFT FULL
 -- RIGHT INNER_P NATURAL@ in @gram.y@), and there's nothing to hold between
--- parsing a join and applying it, so no item type is warranted here —
+-- parsing a join and applying it, so no item type is warranted here -
 -- unlike "PostgresqlSyntax.Ast.SimpleSelect", this hub isn't collect-then-fold.
 instance Extends TableRef JoinedTable where
   -- ==== References

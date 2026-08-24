@@ -25,7 +25,7 @@ instance IsAst ImplicitRow where
 
   -- Parses the shared @a_expr@ once and then decides, from what follows,
   -- whether it's the sole element of the leading 'ExprList' or the trailing
-  -- @a_expr@ — see 'PostgresqlSyntax.Extras.NonEmpty.consAndUnsnoc'.
+  -- @a_expr@ - see 'PostgresqlSyntax.Extras.NonEmpty.consAndUnsnoc'.
   parser settings = Parsers.inParens $ do
     a <- Parser.wrapToHead (parser settings)
     Parsers.commaSeparator

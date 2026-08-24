@@ -39,7 +39,7 @@ instance IsAst Ident where
 -- @
 --
 -- Most grammar positions that hold an identifier (column\/table\/alias
--- names, ...) are actually @ColId@, not bare @IDENT@ — this is the
+-- names, ...) are actually @ColId@, not bare @IDENT@ - this is the
 -- permissive variant that most 'Ident'-typed fields elsewhere in
 -- "PostgresqlSyntax.Ast" should parse with, since 'Ident'\'s own generic
 -- 'parser' only accepts the strict @IDENT@ token (no Parsers.keyword fallback).

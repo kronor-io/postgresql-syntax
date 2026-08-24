@@ -14,7 +14,7 @@ import qualified Test.QuickCheck as Qc
 
 -- |
 -- The part of the following productions that follows @a_expr [NOT]@ /
--- @b_expr [NOT]@ — the leading @IS@\/@NOT@ toggle itself is external to this
+-- @b_expr [NOT]@ - the leading @IS@\/@NOT@ toggle itself is external to this
 -- type (it lives alongside it, e.g. in @ReversableOpAExpr AExpr Bool
 -- AExprReversableOp@), mirroring how 'PostgresqlSyntax.Ast.VerbalExprBinOp'
 -- keeps @NOT_LA@ external. Only the @IS@\/@BETWEEN@\/@IN@ Parsers.keyword that's

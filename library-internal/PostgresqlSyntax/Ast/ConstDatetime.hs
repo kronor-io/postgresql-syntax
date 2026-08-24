@@ -54,7 +54,7 @@ instance Qc.Arbitrary ConstDatetime where
   shrink = Qc.genericShrink
 
   -- The precision here is parsed via 'Parsers.decimal' (unsigned), so it
-  -- must never be negative — mirroring
+  -- must never be negative - mirroring
   -- 'PostgresqlSyntax.Ast.IntervalSecond'\'s own @nonNegative@.
   arbitrary =
     Qc.oneof

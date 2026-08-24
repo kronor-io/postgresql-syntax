@@ -44,8 +44,8 @@ import qualified Test.QuickCheck as Qc
 -- @
 --
 -- Unlike 'PostgresqlSyntax.Ast.AExpr', nothing customizes this parser's
--- @c_expr@\/identifier axis externally, so — despite also being a
--- recursion hub — it needs no @customizedParser@\/@filteredParser@ export.
+-- @c_expr@\/identifier axis externally, so - despite also being a
+-- recursion hub - it needs no @customizedParser@\/@filteredParser@ export.
 data BExpr
   = CExprBExpr CExpr
   | TypecastBExpr BExpr Typename
@@ -67,11 +67,11 @@ instance IsAst BExpr where
     IsOpBExpr a b c -> renderOperand a <> " " <> renderBExprIsOp b c
     where
       -- See 'PostgresqlSyntax.Ast.AExpr'\'s @renderOperand@ for the
-      -- rationale — same left\/accumulator-position hazard, mirrored here
+      -- rationale - same left\/accumulator-position hazard, mirrored here
       -- for 'BExpr'\'s own (smaller) suffix grammar. Unlike 'AExpr', there's
       -- no @'(' b_expr ')'@ production to fall back on, so parenthesizing
       -- reinterprets the operand as an @a_expr@ via
-      -- 'PostgresqlSyntax.Ast.CExpr'\'s @'(' a_expr ')'@ instead — still
+      -- 'PostgresqlSyntax.Ast.CExpr'\'s @'(' a_expr ')'@ instead - still
       -- valid, semantically-equivalent SQL, just not the same 'BExpr' shape
       -- on reparse (only relevant to hand-constructed values; the
       -- 'Qc.Arbitrary' instance below never generates an operand needing
@@ -115,7 +115,7 @@ instance IsAst BExpr where
 
 -- |
 -- Whether the given 'BExpr' is safe to place in the left\/accumulator
--- position of a suffix production without parenthesizing it — see
+-- position of a suffix production without parenthesizing it - see
 -- 'IsAst' 'BExpr'\'s @renderOperand@. Mirrors
 -- 'PostgresqlSyntax.Ast.AExpr.isBoundedAExprOperand'.
 isBoundedBExprOperand :: BExpr -> Bool

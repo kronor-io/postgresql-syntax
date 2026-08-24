@@ -44,7 +44,7 @@ import qualified Test.QuickCheck as Qc
 --
 -- Hosts the real @select_clause@ grammar (including its
 -- @UNION@\/@INTERSECT@\/@EXCEPT@-chaining) for both itself and
--- "PostgresqlSyntax.Ast.SelectNoParens", which shares it — see
+-- "PostgresqlSyntax.Ast.SelectNoParens", which shares it - see
 -- 'PostgresqlSyntax.Ast.SelectClause'\'s module documentation for why.
 data SimpleSelect
   = NormalSimpleSelect (Maybe Targeting) (Maybe IntoClause) (Maybe FromClause) (Maybe WhereClause) (Maybe GroupClause) (Maybe HavingClause) (Maybe WindowClause)
@@ -72,19 +72,19 @@ instance IsAst SimpleSelect where
 
   -- ==== Law
   --
-  -- @parser = parseExtended \@SelectClause \<|\> baseSimpleSelect@ — a bare
+  -- @parser = parseExtended \@SelectClause \<|\> baseSimpleSelect@ - a bare
   -- 'SimpleSelect' is either a @select_clause@ chain of at least one
   -- @UNION@\/@INTERSECT@\/@EXCEPT@ (see 'Extends' below), or, failing
   -- that (no continuation follows), one of the non-chain base cases; it's
   -- never a bare, zero-extension @select_clause@ (that's not a
-  -- 'SimpleSelect' at all — see 'SelectClause'). The chain alternative has
+  -- 'SimpleSelect' at all - see 'SelectClause'). The chain alternative has
   -- to come first: trying 'baseSimpleSelect' alone would succeed on just
   -- the head of a chain and never look for what follows.
   parser settings = parseExtended @SelectClause settings <|> parseBase settings
 
 -- |
 -- The @simple_select@ productions that don't left-recurse through
--- @select_clause@ — i.e. everything but @select_clause BINOP
+-- @select_clause@ - i.e. everything but @select_clause BINOP
 -- select_clause@. "PostgresqlSyntax.Ast.SelectClause" reaches these
 -- through this class method, which is why 'SimpleSelect' needs no helper
 -- export.
@@ -119,14 +119,14 @@ instance LeftRecursive SimpleSelect where
 -- 'SelectBinOp' plus its @ALL@\/@DISTINCT@ qualifier and right operand,
 -- applied via 'BinSimpleSelect'.
 --
--- Keeps the collect-then-fold shape — parsing every 'SelectChainLink' up
--- front via 'parseExtensionChain', then folding via 'foldChain' — rather
+-- Keeps the collect-then-fold shape - parsing every 'SelectChainLink' up
+-- front via 'parseExtensionChain', then folding via 'foldChain' - rather
 -- than folding as it goes, because this hub's items aren't all one
 -- precedence level: @gram.y@ declares @%left UNION EXCEPT@ before (i.e.
 -- binding looser than) @%left INTERSECT@ (gram.y:813-814), both
 -- left-associative, so a uniform left-to-right fold-as-you-parse would
 -- root @a INTERSECT b UNION c@ at @INTERSECT@ and nest @a EXCEPT b EXCEPT
--- c@ to the right — both wrong. 'foldChain' needs the whole flat sequence
+-- c@ to the right - both wrong. 'foldChain' needs the whole flat sequence
 -- in hand to sort that out; see its own docs above.
 instance Extends SelectClause SimpleSelect where
   parseExtensions settings lhs = foldChain lhs <$> parseLinks settings
@@ -147,18 +147,18 @@ parseLinks settings = parseExtensionChain $ do
 -- |
 -- ==== The precedence fold
 --
--- @go@ applies items to the accumulator one at a time, left to right —
+-- @go@ applies items to the accumulator one at a time, left to right -
 -- which by itself is already left-associative for a run of same-operator
 -- items, INTERSECT included. What needs help is a /low-precedence/ item
 -- (@UNION@\/@EXCEPT@) immediately followed by @INTERSECT@ items: those
 -- bind tighter, so they must combine into that item's right operand
 -- before @go@ applies it, not become separate steps of @go@'s own fold.
--- @absorbIntersect@ does exactly that — and only that: it leaves an
+-- @absorbIntersect@ does exactly that - and only that: it leaves an
 -- @INTERSECT@ item itself untouched (its rest is handled by @go@'s next
 -- iteration, one item at a time), and otherwise absorbs a maximal
 -- trailing run of @INTERSECT@ items into the current item's right
 -- operand. @go@ then continues from whatever @absorbIntersect@ left
--- unconsumed, and either finishes (if nothing's left — the whole point of
+-- unconsumed, and either finishes (if nothing's left - the whole point of
 -- ending on 'applyLink' rather than wrapping it back into a
 -- @SelectClause@ is that the final combination must be the returned
 -- @SimpleSelect@) or continues.
@@ -205,7 +205,7 @@ instance Qc.Arbitrary SimpleSelect where
 -- |
 -- Collapses an arbitrary-shaped @BinSimpleSelect@ chain to the shape
 -- 'foldChain' actually produces for it (left-associated within each
--- precedence level, @INTERSECT@ binding tighter than @UNION@\/@EXCEPT@ —
+-- precedence level, @INTERSECT@ binding tighter than @UNION@\/@EXCEPT@ -
 -- see 'foldChain' above): 'flattenChain' reduces the chain to its flat
 -- sequence of operators and operands regardless of how it's currently
 -- nested, and re-folding that sequence with the same 'foldChain' the
@@ -223,7 +223,7 @@ instance Canonicalizes SimpleSelect where
 -- |
 -- Reduces a @BinSimpleSelect@ chain, in whatever shape it's currently
 -- nested, to its leading operand and the flat, left-to-right sequence of
--- 'SelectChainLink' items that follow it — the inverse of 'foldChain'.
+-- 'SelectChainLink' items that follow it - the inverse of 'foldChain'.
 flattenChain :: SelectClause -> (SelectClause, [SelectChainLink])
 flattenChain (SimpleSelectSelectClause (BinSimpleSelect op lhs distinct rhs)) =
   let (lhsHead, lhsRest) = flattenChain lhs

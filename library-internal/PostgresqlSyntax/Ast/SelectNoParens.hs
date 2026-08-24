@@ -77,8 +77,8 @@ sharedSelectNoParens settings with = do
 
 -- |
 -- If a 'SelectNoParens' is merely a trivial wrapper around a single
--- parenthesized select — no with-clause, sort, limit or locking clause of
--- its own — returns the wrapped 'SelectWithParens'. Used by the
+-- parenthesized select - no with-clause, sort, limit or locking clause of
+-- its own - returns the wrapped 'SelectWithParens'. Used by the
 -- 'Refines' instance to canonicalize such wrappers.
 refineToSelectWithParens :: SelectNoParens -> Maybe SelectWithParens
 refineToSelectWithParens = \case

@@ -78,12 +78,12 @@ instance IsAst CExpr where
 
 -- |
 -- Parameterized over the @ColId@-like identifier parser used by the plain
--- 'ColumnrefCExpr' alternative — the one place 'PostgresqlSyntax.Ast.AExpr'
+-- 'ColumnrefCExpr' alternative - the one place 'PostgresqlSyntax.Ast.AExpr'
 -- \'s @filteredParser@ needs to customize. Every other alternative here
 -- (parenthesized expressions, @ARRAY@, @EXISTS@, function calls, ...) always
 -- uses the ordinary, unfiltered parsers for its nested @a_expr@\/
 -- @select_with_parens@\/etc, exactly as the pre-extraction
--- @customizedCExpr@\/@parenthesizedExprCExpr@ did — the filtering doesn't
+-- @customizedCExpr@\/@parenthesizedExprCExpr@ did - the filtering doesn't
 -- propagate past this one level.
 customizedParser :: Settings -> Parser Ident -> Parser CExpr
 customizedParser settings colIdParser =
@@ -175,7 +175,7 @@ instance Qc.Arbitrary CExpr where
 -- inner @a_expr@ is itself nothing but a bare, indirection-less
 -- @select_with_parens@: both parse @((select 1))@. 'customizedParser' tries
 -- the @select_with_parens@ alternative before @parenthesizedExprCExpr@, so
--- that's always what the parser returns — never 'InParensCExpr' — making
+-- that's always what the parser returns - never 'InParensCExpr' - making
 -- the latter non-canonical for this shape. Both 'arbitrary' and 'shrink' can
 -- otherwise construct it (shrinking the outer indirection to @Nothing@ is
 -- exactly how it arises), which renders fine but parses back to a

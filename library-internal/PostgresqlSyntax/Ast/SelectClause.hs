@@ -16,7 +16,7 @@ import qualified Test.QuickCheck as Qc
 -- @
 --
 -- This type's own 'IsAst' instance is a plain, non-recursive-suffix-aware
--- dispatch — the real @UNION@\/@INTERSECT@\/@EXCEPT@-chaining grammar
+-- dispatch - the real @UNION@\/@INTERSECT@\/@EXCEPT@-chaining grammar
 -- (where a @select_clause@ extends into a bigger
 -- 'PostgresqlSyntax.Ast.SimpleSelect' via its @BinSimpleSelect@
 -- constructor) is hosted in "PostgresqlSyntax.Ast.SimpleSelect" instead,
@@ -34,7 +34,7 @@ instance IsAst SelectClause where
 
   -- ==== Law
   --
-  -- @parser = parseMaybeExtended \@SelectClause@ — see
+  -- @parser = parseMaybeExtended \@SelectClause@ - see
   -- 'PostgresqlSyntax.Ast.SimpleSelect'\'s 'PostgresqlSyntax.Algebra.Extends'
   -- instance for the real @select_clause@ grammar, including
   -- @UNION@\/@INTERSECT@\/@EXCEPT@-chaining.

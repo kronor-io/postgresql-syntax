@@ -36,11 +36,11 @@ import qualified TextBuilder
 -- Laws:
 --
 -- * __Roundtrips__: @parse settings (toText settings a) = Right a@ for every
---   'Settings' — rendering and parsing are inverses.
+--   'Settings' - rendering and parsing are inverses.
 -- * __Congruent rendering__: @a == b => toTextBuilder settings a == toTextBuilder settings b@
---   for every 'Settings' — rendering only depends on the value, not on how it
+--   for every 'Settings' - rendering only depends on the value, not on how it
 --   was constructed. This is what makes it meaningful to say two structurally
---   different shapes can still render to identical text — the ambiguity that
+--   different shapes can still render to identical text - the ambiguity that
 --   'Canonicalizes' exists to resolve.
 class IsAst a where
   -- |
@@ -114,7 +114,7 @@ class (IsAst a) => Canonicalizes a where
 -- 'Qc.Property'-checkers for 'Canonicalizes'\'s documented laws, keyed by
 -- name. \"Parse-agreement\" is tested at 'mempty' 'Settings', matching how
 -- 'isAstProperties'\'s \"Renders equal values equally\" property handles \"for
--- every 'Settings'\" — no 'Qc.Arbitrary' 'Settings' instance exists or is
+-- every 'Settings'\" - no 'Qc.Arbitrary' 'Settings' instance exists or is
 -- being added.
 canonicalizesProperties :: forall a. (Canonicalizes a, Eq a, Show a, Qc.Arbitrary a) => [(String, Qc.Property)]
 canonicalizesProperties =
@@ -153,14 +153,14 @@ refinesProperties =
   ]
 
 -- |
--- A type some of whose grammar productions are left-recursive — i.e. there
+-- A type some of whose grammar productions are left-recursive - i.e. there
 -- is a larger recursive form built by extending a value of this type on its
 -- left. 'parseBase' is everything that is /not/ one of those productions:
 -- the @β@ of @A -> Aα | β@.
 --
 -- This is a strictly weaker claim than 'Extends', which additionally
 -- names the specific @ext@ of one such hub. A type can be 'LeftRecursive'
--- without being any hub's @base@ — 'PostgresqlSyntax.Ast.JoinedTable' and
+-- without being any hub's @base@ - 'PostgresqlSyntax.Ast.JoinedTable' and
 -- 'PostgresqlSyntax.Ast.SimpleSelect' both are, since each is reached by
 -- extending a /different/ type (@table_ref@ and @select_clause@
 -- respectively) yet still has non-left-recursive productions of its own.
@@ -189,7 +189,7 @@ class (IsAst a) => LeftRecursive a where
 --
 -- * __Base-parser agreement__: @parser \@base = parseMaybeExtended \@base@
 -- * __Maximal munch__: 'parseExtensions' must not return while a further
---   extension is available — instances build this on 'parseExtensionChain'
+--   extension is available - instances build this on 'parseExtensionChain'
 --   where possible, which already guarantees it.
 class (LeftRecursive base, Refines ext base) => Extends base ext | ext -> base where
   -- | Parse one or more extensions onto an already-parsed left operand,
@@ -250,7 +250,7 @@ parseExtended settings = do
 -- Parses one or more items back-to-back, wrapping each in
 -- 'Parser.wrapToHead'\/'Parser.endHead' so that, once an item's own head has
 -- matched, backtracking out of the whole chain (back to "there are no more
--- items") is no longer attempted — matching the hand-written
+-- items") is no longer attempted - matching the hand-written
 -- recursive-descent loops this replaces. This is the shared backtracking
 -- protocol underlying 'Extends'\'s \"Maximal munch\" law: an instance
 -- building 'parseExtensions' on top of this combinator gets the law for

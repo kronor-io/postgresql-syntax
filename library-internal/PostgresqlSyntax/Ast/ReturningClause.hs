@@ -16,7 +16,7 @@ import qualified Test.QuickCheck as Qc
 -- @
 --
 -- @returning_with_clause@ (the @WITH (...)@ modifier) is not modeled
--- here — not supported by this codebase's grammar subset.
+-- here - not supported by this codebase's grammar subset.
 newtype ReturningClause = ReturningClause TargetList
   deriving (Show, Generic, Eq, Ord, Data)
 

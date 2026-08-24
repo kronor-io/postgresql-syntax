@@ -214,7 +214,7 @@ allOrDistinct = keyword "all" $> False <|> keyword "distinct" $> True
 
 -- |
 -- A ColId-like identifier parser (unreserved keyword ∪ col-name keyword)
--- restricted to exclude the given reserved words — needed wherever a
+-- restricted to exclude the given reserved words - needed wherever a
 -- trailing bare word must terminate a construct instead of being consumed
 -- as an identifier. Its only caller is
 -- 'PostgresqlSyntax.Ast.RelationExprOptAlias', which excludes @SET@ only in

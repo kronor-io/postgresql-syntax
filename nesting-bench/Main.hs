@@ -24,7 +24,7 @@ nestedParens :: Int -> Text
 nestedParens n =
   Text.replicate n "(" <> "a + b" <> Text.replicate n ")"
 
--- | Case 2: the user-reported shape — a sum of @COALESCE@ terms, split into
+-- | Case 2: the user-reported shape - a sum of @COALESCE@ terms, split into
 -- two parenthesised groups subtracted from one another, wrapped in a few
 -- redundant parentheses.
 coalesceSum :: Int -> Int -> Text

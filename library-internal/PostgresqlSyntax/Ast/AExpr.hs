@@ -142,13 +142,13 @@ instance IsAst AExpr where
       -- right-hand operand via an unrestricted recursive @a_expr@ call, so
       -- rendering it plainly always reconstructs the same shape on reparse.
       -- The *left* position is different: control only returns to
-      -- @suffixRec@'s loop after a __bounded__ production — one that
+      -- @suffixRec@'s loop after a __bounded__ production - one that
       -- doesn't itself end in an unrestricted recursive @a_expr@. A value
       -- shaped like 'PlusAExpr'\/'MinusAExpr'\/'NotAExpr'\/
       -- 'PrefixQualOpAExpr'\/'AtTimeZoneAExpr'\/'SymbolicBinOpAExpr'\/
       -- 'AndAExpr'\/'OrAExpr'\/'VerbalExprBinOpAExpr', or a 'ReversableOpAExpr'
       -- whose 'PostgresqlSyntax.Ast.AExprReversableOp' ends in one too, is
-      -- unbounded — placed there bare, it would greedily re-absorb whatever
+      -- unbounded - placed there bare, it would greedily re-absorb whatever
       -- follows on reparse (e.g. rendering @SymbolicBinOpAExpr (NotAExpr x)
       -- op y@ plainly as @NOT x op y@ reparses as @NotAExpr (SymbolicBinOpAExpr
       -- x op y)@). Parenthesizing it, via the existing @'(' a_expr ')'@
@@ -161,10 +161,10 @@ instance IsAst AExpr where
       -- The @d@ operand of a @LIKE@\/@ILIKE@\/@SIMILAR TO@ production, when
       -- it has a trailing @ESCAPE@ clause of its own (@e@). Since @d@ is
       -- parsed via an unrestricted recursive @a_expr@, rendering it bare
-      -- when it's unbounded (see 'isBoundedAExprOperand') — e.g. a dangling
+      -- when it's unbounded (see 'isBoundedAExprOperand') - e.g. a dangling
       -- operator, or an escape-less 'VerbalExprBinOpAExpr' whose own greedy
       -- @optional escape@ check would otherwise swallow the text meant for
-      -- \*this* production's @ESCAPE@ — reparses differently. Bounded shapes
+      -- \*this* production's @ESCAPE@ - reparses differently. Bounded shapes
       -- (a column reference, a constant, an already-parenthesized
       -- expression, DEFAULT, …) always terminate cleanly and never need the
       -- extra parens, exactly like @renderOperand@'s left position.
@@ -175,7 +175,7 @@ instance IsAst AExpr where
           | otherwise -> TextBuilders.renderInParens (toTextBuilder settings d)
       -- Distinct from 'PostgresqlSyntax.Ast.AExprReversableOp'\'s own
       -- @toTextBuilder@ (which bakes in the "positive" @IS@\/@BETWEEN@\/@IN@
-      -- Parsers.keyword but not the negation) — this one threads the external
+      -- Parsers.keyword but not the negation) - this one threads the external
       -- @Bool@ (@NOT@) in, mirroring the pre-extraction top-level
       -- @aExprReversableOp@ renderer.
       renderAExprReversableOp a = \case
@@ -193,7 +193,7 @@ instance IsAst AExpr where
 
 -- |
 -- Parameterized over the 'PostgresqlSyntax.Ast.CExpr' parser embedded at the
--- base case — the only axis 'filteredParser' needs to customize (via
+-- base case - the only axis 'filteredParser' needs to customize (via
 -- 'PostgresqlSyntax.Ast.CExpr.customizedParser'). Every other occurrence of
 -- @a_expr@\/@b_expr@\/@select_with_parens@ in the grammar below uses the
 -- ordinary, unfiltered parsers, exactly as the pre-extraction
@@ -288,7 +288,7 @@ customizedParser settings cExpr = suffixRec base suffix
 -- |
 -- The @OVERLAPS@ operator, as a suffix of an already parsed left operand.
 -- Reinterprets the already-parsed base 'AExpr' as a 'Row' rather than
--- speculatively parsing a @row@ on top of it — see the original
+-- speculatively parsing a @row@ on top of it - see the original
 -- @overlapsSuffix@ in the pre-extraction @PostgresqlSyntax.Parsing@ for the
 -- exponential-blowup rationale this avoids.
 overlapsSuffix :: Settings -> AExpr -> Parser AExpr
@@ -308,7 +308,7 @@ overlapsSuffix settings a = do
 
 -- |
 -- Whether the given 'AExpr' is safe to place in the left\/accumulator
--- position of a suffix production without parenthesizing it — see
+-- position of a suffix production without parenthesizing it - see
 -- @renderOperand@ in the 'IsAst' instance above for why that position is
 -- special. A shape is bounded when parsing it can never end in an
 -- unrestricted recursive @a_expr@ call, i.e. control is guaranteed to
@@ -320,14 +320,14 @@ overlapsSuffix settings a = do
 -- would re-absorb the suffix that follows (e.g. rendering
 -- @SymbolicBinOpAExpr (NotAExpr x) op y@ plainly as @NOT x op y@ reparses
 -- as @NotAExpr (SymbolicBinOpAExpr x op y)@). It is /not/ a general
--- terminator-keyword guard — it isn't a general-purpose mechanism against
+-- terminator-keyword guard - it isn't a general-purpose mechanism against
 -- an expression swallowing a keyword that terminates an enclosing
 -- production; the only shape that ever created that hazard by construction
 -- was the postfix @a_expr qual_Op@ production, which no longer exists here
 -- or in @references/gram.y@ (see gram.y:15985,15987; Postgres removed
 -- postfix operators in v14). It does incidentally get reused for that
 -- purpose in "PostgresqlSyntax.Ast.TargetEl" (to stop an @OrAExpr@'s right
--- operand from absorbing a following implicit alias) — that's just one
+-- operand from absorbing a following implicit alias) - that's just one
 -- call site's use of it, not evidence of general applicability.
 isBoundedAExprOperand :: AExpr -> Bool
 isBoundedAExprOperand = \case
@@ -378,7 +378,7 @@ instance Refines SelectWithParens AExpr where
 -- indirection-less @select_with_parens@: both parse @x = ANY ((select 1))@.
 -- @suffix@ tries the @select_with_parens@ alternative before the
 -- parenthesized @a_expr@ one (see the @d <- Left <$> ... <|> Right <$> ...@
--- line above), so that's always what the parser returns — never @Right@ —
+-- line above), so that's always what the parser returns - never @Right@ -
 -- making the latter non-canonical for this shape. Both 'arbitrary' and
 -- 'shrink' can otherwise construct it, which renders fine but parses back to
 -- a different, canonical value and so breaks the roundtrip property.
@@ -417,7 +417,7 @@ instance Qc.Arbitrary AExpr where
                   -- whenever there's an escape clause, an unbounded @d@ must
                   -- be pre-wrapped in parens so the generated value already
                   -- matches what parsing the (necessarily parenthesized)
-                  -- rendering reconstructs — the same rule 'safeAExprOperand'
+                  -- rendering reconstructs - the same rule 'safeAExprOperand'
                   -- applies for the left/accumulator position.
                   d <- case e of
                     Nothing -> Gens.downscale Qc.arbitrary

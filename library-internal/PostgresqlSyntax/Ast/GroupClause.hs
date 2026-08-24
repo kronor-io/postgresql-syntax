@@ -17,7 +17,7 @@ import qualified Test.QuickCheck as Qc
 --   |  /*EMPTY*/
 -- @
 --
--- @set_quantifier@ (@DISTINCT@\/@ALL@) is not modeled here — this
+-- @set_quantifier@ (@DISTINCT@\/@ALL@) is not modeled here - this
 -- codebase's grammar subset doesn't support @GROUP BY DISTINCT@.
 newtype GroupClause = GroupClause (NonEmpty GroupByItem)
   deriving (Show, Generic, Eq, Ord, Data)

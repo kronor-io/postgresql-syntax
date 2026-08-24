@@ -44,7 +44,7 @@ instance Qc.Arbitrary SelectFetchFirstValue where
   -- The magnitude is parsed via unsigned 'Parser.decimal'\/'Fconst' (the
   -- sign is this type's own separate @Bool@ field), so, like
   -- 'PostgresqlSyntax.Ast.IntervalSecond'\'s @nonNegative@, it must never be
-  -- negative itself — otherwise e.g. @NumSelectFetchFirstValue True (Left
+  -- negative itself - otherwise e.g. @NumSelectFetchFirstValue True (Left
   -- (-1))@ renders as @-1@ with no space (a valid unsigned-magnitude
   -- rendering would be @- 1@ or just @-1@ for magnitude 1), doubling up
   -- into @--1@, which reparses as a line comment.

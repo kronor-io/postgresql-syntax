@@ -23,7 +23,7 @@ spec = do
       itParses @AExpr "a=ANY(b)"
 
     -- gram.y:15985,15987 have only @a_expr qual_Op a_expr@ and
-    -- @qual_Op a_expr@ — the postfix @a_expr qual_Op@ form was removed
+    -- @qual_Op a_expr@ - the postfix @a_expr qual_Op@ form was removed
     -- from Postgres in v14.
     describe "rejects postfix operators" $ do
       itRejects @AExpr "1 +#"
@@ -67,7 +67,7 @@ spec = do
       -- Reparsing always wraps a parenthesized operand in an explicit
       -- 'InParensCExpr' (parens are themselves a production), so the
       -- fixpoint of render/parse is the parenthesized form, not the bare
-      -- @outer@ below — that's expected and matches how
+      -- @outer@ below - that's expected and matches how
       -- 'PostgresqlSyntax.Ast.AExpr.Qc.Arbitrary'\'s generator pre-wraps
       -- this same shape. What matters here is that the parens are present at
       -- all, and that the fixpoint is stable.

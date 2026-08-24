@@ -73,7 +73,7 @@ instance IsAst FuncApplicationParams where
       -- @func_arg_list ',' VARIADIC func_arg_expr@: one or more
       -- comma-separated 'FuncArgExpr's, where the final comma is
       -- immediately followed by (and the @VARIADIC@ Parsers.keyword itself consumed
-      -- by) the terminating branch — equivalent to the pre-extraction
+      -- by) the terminating branch - equivalent to the pre-extraction
       -- @sepEnd1 Parsers.commaSeparator (Parsers.keyword "variadic" <* space1) funcArgExpr@.
       listVariadicFuncApplicationParams = do
         argList <- Parser.wrapToHead argListEndingInVariadic
@@ -91,7 +91,7 @@ instance IsAst FuncApplicationParams where
       -- A bare '*' char can also be the leading char of a longer operator
       -- token (e.g. "*#" in @foo(*# DEFAULT)@'s @PrefixQualOpAExpr@), so
       -- this only commits to the wildcard reading when no further op char
-      -- follows — otherwise it falls through to 'normalFuncApplicationParams',
+      -- follows - otherwise it falls through to 'normalFuncApplicationParams',
       -- which parses the '*' as the start of that operator instead.
       starFuncApplicationParams =
         Parsers.space

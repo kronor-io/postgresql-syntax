@@ -167,7 +167,7 @@ instance Qc.Arbitrary FuncExprCommonSubexpr where
             [ CollationForFuncExprCommonSubexpr <$> Gens.downscale Qc.arbitrary,
               pure CurrentDateFuncExprCommonSubexpr,
               -- The @Iconst@ here is parsed via 'Parsers.decimal' (unsigned), so
-              -- it must never be negative — mirroring
+              -- it must never be negative - mirroring
               -- 'PostgresqlSyntax.Ast.IntervalSecond'\'s own @nonNegative@.
               CurrentTimeFuncExprCommonSubexpr <$> nonNegativeMaybeInt64,
               CurrentTimestampFuncExprCommonSubexpr <$> nonNegativeMaybeInt64,

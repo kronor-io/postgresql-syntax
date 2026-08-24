@@ -11,7 +11,7 @@ import qualified Test.QuickCheck as Qc
 
 -- |
 -- The parenthesized-argument-list part of a @func_name '(' func_arg_list
--- opt_sort_clause ')' Sconst@ 'PostgresqlSyntax.Ast.AexprConst' — rendered\/
+-- opt_sort_clause ')' Sconst@ 'PostgresqlSyntax.Ast.AexprConst' - rendered\/
 -- parsed without its enclosing parens, which belong to the caller.
 --
 -- ==== References
