@@ -1,3 +1,9 @@
+# v0.5.0.3
+
+## Fixes
+
+- Fixed subquery operators requiring whitespace around them: unspaced forms like `a=ANY(b)` used to be a parse error and now parse, matching Postgres (#36).
+
 # v0.5.0.2
 
 ## Non-breaking
