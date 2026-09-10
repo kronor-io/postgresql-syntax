@@ -10,6 +10,7 @@ import PostgresqlSyntax.Ast.HsTargetList
 import PostgresqlSyntax.Ast.Ident
 import PostgresqlSyntax.Ast.Indirection
 import PostgresqlSyntax.Ast.IndirectionEl
+import PostgresqlSyntax.Ast.JoinedTable
 import PostgresqlSyntax.Ast.PreparableStmt
 import PostgresqlSyntax.Ast.TargetEl
 import PostgresqlSyntax.Lowering
@@ -49,6 +50,15 @@ spec = do
       it "Numbers the operands of an expression left to right" $
         sqlOf "select $3::int8 + $2::int8 + $1::int8"
           `shouldBe` "SELECT $1 :: int8 + $2 :: int8 + $3 :: int8"
+      -- The one node whose children are not visited in render order. The
+      -- pre-0.5 fork numbered a join qualifier ahead of the tables it joins,
+      -- because its constructor held the join method in the first field, and
+      -- eight of the 1513 quasiquotes in the Kronor repo depend on that to
+      -- keep the numbering they already have. Reduced from
+      -- kronor-worker/src/Worker/Acquirer/Clearhaus/FetchDisputes.hs:138.
+      it "Numbers a join qualifier before the tables it joins" $
+        sqlOf "select a.id from a join unnest($2::uuid[]) as b (id) on a.org = $1::bigint"
+          `shouldBe` "SELECT a.id FROM a JOIN unnest($2 :: uuid[]) AS b (id) ON a.org = $1 :: BIGINT"
 
     describe "Rendering after lowering" $ do
       it "Leaves plain positional placeholders and no Haskell field names" $
@@ -81,14 +91,20 @@ spec = do
       it "Lexes a dotted field name as one field instead" $
         slotsOf "select $1.$foo.bar::int8" `shouldBe` [((1, Just "foo.bar"), 1)]
 
+    -- The traversal rests on constructor field order equalling render order
+    -- across some two hundred node types, which is checked here rather than
+    -- assumed. Statements containing a qualified join are excluded because
+    -- that is the one node where the two deliberately disagree; see the
+    -- literal case above.
     prop "Allocates in the order the placeholders appear in the rendered SQL" $
       \(stmt :: PreparableStmt) ->
-        let rendered = toText mempty stmt
-            allocated = fmap (fst . fst) (sortOn snd (Map.toList (snd (renameParams stmt))))
-            appeared = renderedParamOrder rendered
-         in Qc.counterexample
-              (Text.unpack rendered <> "\nallocated: " <> show allocated <> "\nappeared: " <> show appeared)
-              (allocated == appeared)
+        not (containsQualJoin stmt) Qc.==>
+          let rendered = toText mempty stmt
+              allocated = fmap (fst . fst) (sortOn snd (Map.toList (snd (renameParams stmt))))
+              appeared = renderedParamOrder rendered
+           in Qc.counterexample
+                (Text.unpack rendered <> "\nallocated: " <> show allocated <> "\nappeared: " <> show appeared)
+                (allocated == appeared)
 
   describe "eraseHaskellTargets" $ do
     it "Flattens nested Haskell targets to their SQL leaves, depth-first" $
@@ -125,6 +141,11 @@ slotsOf = Map.toList . snd . lower . parseStmt
 -- | A lowered statement rendered back to plain Postgres.
 sqlOf :: Text -> Text
 sqlOf = toText mempty . fst . lower . parseStmt
+
+containsQualJoin :: (Data a) => a -> Bool
+containsQualJoin x = case cast x :: Maybe JoinedTable of
+  Just QualJoinedTable {} -> True
+  _ -> or (gmapQ containsQualJoin x)
 
 targetEl :: Text -> TargetEl
 targetEl = either (error . Text.unpack) id . parse @TargetEl mempty

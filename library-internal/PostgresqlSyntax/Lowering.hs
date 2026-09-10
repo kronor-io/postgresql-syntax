@@ -27,6 +27,7 @@ import PostgresqlSyntax.Ast.HsTargetEl
 import PostgresqlSyntax.Ast.HsTargetList
 import PostgresqlSyntax.Ast.Indirection
 import PostgresqlSyntax.Ast.IndirectionEl
+import PostgresqlSyntax.Ast.JoinedTable
 import PostgresqlSyntax.Ast.TargetEl
 import PostgresqlSyntax.Prelude
 
@@ -61,9 +62,26 @@ lower = renameParams . eraseHaskellTargets
 -- addressing that the caller resolves, not SQL the server should see. So
 -- @$1.$foo[2]@ lowers to a bare @$3@ (say), keyed @(1, Just "foo")@. An
 -- ordinary indirection keeps its chain untouched.
+--
+-- The traversal is pre-order, so an enclosing placeholder is numbered before
+-- one nested in its indirection, and left-to-right in constructor field
+-- order, which throughout this AST is the order the node renders in. The one
+-- exception is 'QualJoinedTable', whose @ON@ qualifier is numbered ahead of
+-- the two joined tables even though it renders after them. That is not
+-- arbitrary: the pre-0.5 fork's hand-written traversal did the same, because
+-- its constructor put the join method and its qualifier in the first field,
+-- and matching it keeps the numbering of every existing quasiquote unchanged.
+-- Nothing downstream depends on which order is chosen - the placeholder
+-- mapping returned here is what the caller permutes its parameter tuple with,
+-- so any bijection is self-consistent - but a statement that needs no
+-- renumbering should not get any.
 renameParams :: (Data a) => a -> (a, InputParams)
-renameParams a = runAlloc (topDownM (mkM step) a) Map.empty
+renameParams a = runAlloc (go a) Map.empty
   where
+    -- Pre-order: renumber the node, then descend into its children.
+    go :: (Data d) => d -> Alloc d
+    go x = mkM step x >>= descend
+
     step :: CExpr -> Alloc CExpr
     step = \case
       ParamCExpr n Nothing ->
@@ -74,6 +92,18 @@ renameParams a = runAlloc (topDownM (mkM step) a) Map.empty
         _ ->
           (\n' -> ParamCExpr n' (Just indirection)) <$> getNextParam n Nothing
       other -> pure other
+
+    -- Children left-to-right in field order, which in this AST is source
+    -- order, except for the one node called out below.
+    descend :: forall d. (Data d) => d -> Alloc d
+    descend x = case cast x of
+      Just (QualJoinedTable left joinType right qual) -> do
+        qual' <- go qual
+        left' <- go left
+        joinType' <- go joinType
+        right' <- go right
+        pure (generalize (QualJoinedTable left' joinType' right' qual') x)
+      _ -> gmapM go x
 
 -- |
 -- Look up the slot for a placeholder, allocating the next one if it is the
@@ -126,16 +156,6 @@ sqlTargetEls = \case
 -- for them.
 
 -- |
--- Apply a generic monadic transformation to every node, visiting a node
--- /before/ its children and the children left-to-right in field order.
---
--- Pre-order is what 'renameParams' needs: @syb@\'s bottom-up @everywhereM@
--- would number the inner placeholder of @$1[$2]@ first, and the numbering has
--- to follow source order for the caller\'s parameter tuple to line up.
-topDownM :: (Monad m, Data a) => (forall d. (Data d) => d -> m d) -> a -> m a
-topDownM f x = f x >>= gmapM (topDownM f)
-
--- |
 -- Apply a generic transformation to every node, bottom-up.
 everywhere :: (Data a) => (forall d. (Data d) => d -> d) -> a -> a
 everywhere f = f . gmapT (everywhere f)
@@ -149,6 +169,12 @@ mkM f = fromMaybe pure (cast f)
 -- | Lift a transformation on one type into a generic one.
 mkT :: forall a b. (Typeable a, Typeable b) => (b -> b) -> a -> a
 mkT f = fromMaybe id (cast f)
+
+-- |
+-- Put a value back into the type it was 'cast' out of. The fallback never
+-- fires: it is only ever called on the result of a successful 'cast'.
+generalize :: (Typeable a, Typeable b) => b -> a -> a
+generalize replacement original = fromMaybe original (cast replacement)
 
 -- * The allocation monad
 --
