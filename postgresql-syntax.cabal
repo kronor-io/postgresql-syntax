@@ -123,6 +123,8 @@ library internal
     PostgresqlSyntax.Ast.GroupByItem
     PostgresqlSyntax.Ast.GroupClause
     PostgresqlSyntax.Ast.HavingClause
+    PostgresqlSyntax.Ast.HsTargetEl
+    PostgresqlSyntax.Ast.HsTargetList
     PostgresqlSyntax.Ast.Iconst
     PostgresqlSyntax.Ast.Ident
     PostgresqlSyntax.Ast.ImplicitRow
@@ -316,6 +318,8 @@ test-suite hspec-test
     Ast.GroupByItemSpec
     Ast.GroupClauseSpec
     Ast.HavingClauseSpec
+    Ast.HsTargetElSpec
+    Ast.HsTargetListSpec
     Ast.IconstSpec
     Ast.IdentSpec
     Ast.ImplicitRowSpec

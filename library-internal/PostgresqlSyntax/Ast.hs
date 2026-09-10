@@ -60,6 +60,9 @@ module PostgresqlSyntax.Ast
     GroupByItem (..),
     GroupClause (..),
     HavingClause (..),
+    HsFieldTargetEl (..),
+    HsTargetEl (..),
+    HsTargetList (..),
     Iconst (..),
     Ident (..),
     ImplicitRow (..),
@@ -237,6 +240,8 @@ import PostgresqlSyntax.Ast.GenericType
 import PostgresqlSyntax.Ast.GroupByItem
 import PostgresqlSyntax.Ast.GroupClause
 import PostgresqlSyntax.Ast.HavingClause
+import PostgresqlSyntax.Ast.HsTargetEl
+import PostgresqlSyntax.Ast.HsTargetList
 import PostgresqlSyntax.Ast.Iconst
 import PostgresqlSyntax.Ast.Ident
 import PostgresqlSyntax.Ast.ImplicitRow

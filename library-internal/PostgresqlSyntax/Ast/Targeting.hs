@@ -3,6 +3,7 @@ module PostgresqlSyntax.Ast.Targeting where
 import qualified HeadedMegaparsec as Parser
 import PostgresqlSyntax.Algebra
 import PostgresqlSyntax.Ast.ExprList
+import PostgresqlSyntax.Ast.HsTargetList
 import PostgresqlSyntax.Ast.TargetList
 import qualified PostgresqlSyntax.Helpers.Gens as Gens
 import qualified PostgresqlSyntax.Helpers.Parsers as Parsers
@@ -22,7 +23,7 @@ import qualified Test.QuickCheck as Qc
 --   |  DISTINCT ON '(' expr_list ')'
 -- @
 data Targeting
-  = NormalTargeting TargetList
+  = NormalTargeting HsTargetList
   | AllTargeting (Maybe TargetList)
   | DistinctTargeting (Maybe ExprList) TargetList
   deriving (Show, Generic, Eq, Ord, Data)
