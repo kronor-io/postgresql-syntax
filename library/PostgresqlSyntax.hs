@@ -21,6 +21,8 @@ module PostgresqlSyntax
     -- * Settings
     Settings.Settings,
     Settings.nullabilityMarkers,
+    Settings.haskellTargets,
+    Settings.haskellParamFields,
 
     -- * AST
     module PostgresqlSyntax.Ast,
