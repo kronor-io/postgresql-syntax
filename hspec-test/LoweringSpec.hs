@@ -14,7 +14,7 @@ import PostgresqlSyntax.Ast.JoinedTable
 import PostgresqlSyntax.Ast.PreparableStmt
 import PostgresqlSyntax.Ast.TargetEl
 import PostgresqlSyntax.Lowering
-import PostgresqlSyntax.Settings (Settings, haskellParamFields)
+import PostgresqlSyntax.Settings (Settings, haskellParamFields, haskellTargets)
 import Prelude
 import Test.Hspec
 import Test.Hspec.QuickCheck (prop)
@@ -106,6 +106,24 @@ spec = do
                 (Text.unpack rendered <> "\nallocated: " <> show allocated <> "\nappeared: " <> show appeared)
                 (allocated == appeared)
 
+  describe "lower" $ do
+    -- The consumer builds its row decoder by walking the Haskell targets, so
+    -- they have to outlive the pass; only rendering erases them. Getting this
+    -- backwards silently drops the decoder mapping for every statement that
+    -- uses a function or record target.
+    it "Keeps the Haskell targets in the tree it returns" $
+      renderWith (haskellTargets True) (fst (lower (parseStmtWith (haskellTargets True) "select $mk (a::int8, b::text)")))
+        `shouldBe` "SELECT $mk (a :: int8, b :: text)"
+    it "Renders as plain SQL once erased" $
+      sqlOf' (haskellTargets True) "select $mk (a::int8, b::text)"
+        `shouldBe` "SELECT a :: int8, b :: text"
+    it "Numbers placeholders inside Haskell targets in leaf order" $
+      Map.toList (snd (lower (parseStmtWith (haskellTargets True <> hsParams) "select $mk ($2::int8, $1::text)")))
+        `shouldBe` [((1, Nothing), 2), ((2, Nothing), 1)]
+    it "Numbers as if the targets had been erased first" $
+      let ast = parseStmtWith (haskellTargets True <> hsParams) "select $mk ($2::int8, $1::text) from t where x = $3::uuid"
+       in snd (lower ast) `shouldBe` snd (renameParams (eraseHaskellTargets ast))
+
   describe "eraseHaskellTargets" $ do
     it "Flattens nested Haskell targets to their SQL leaves, depth-first" $
       eraseHaskellTargets
@@ -138,14 +156,26 @@ parseStmt sql = either (error . Text.unpack) id (parse @PreparableStmt hsParams 
 slotsOf :: Text -> [((Int, Maybe Text), Int)]
 slotsOf = Map.toList . snd . lower . parseStmt
 
--- | A lowered statement rendered back to plain Postgres.
+-- |
+-- A lowered statement rendered back to plain Postgres, the way a consumer
+-- has to do it: 'lower' keeps the Haskell targets, so erase before
+-- rendering.
 sqlOf :: Text -> Text
-sqlOf = toText mempty . fst . lower . parseStmt
+sqlOf = toText mempty . eraseHaskellTargets . fst . lower . parseStmt
 
 containsQualJoin :: (Data a) => a -> Bool
 containsQualJoin x = case cast x :: Maybe JoinedTable of
   Just QualJoinedTable {} -> True
   _ -> or (gmapQ containsQualJoin x)
+
+parseStmtWith :: Settings -> Text -> PreparableStmt
+parseStmtWith settings sql = either (error . Text.unpack) id (parse @PreparableStmt settings sql)
+
+renderWith :: Settings -> PreparableStmt -> Text
+renderWith = toText
+
+sqlOf' :: Settings -> Text -> Text
+sqlOf' settings = toText mempty . eraseHaskellTargets . fst . lower . parseStmtWith settings
 
 targetEl :: Text -> TargetEl
 targetEl = either (error . Text.unpack) id . parse @TargetEl mempty
