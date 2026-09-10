@@ -24,6 +24,12 @@ module PostgresqlSyntax
     Settings.haskellTargets,
     Settings.haskellParamFields,
 
+    -- * Lowering the extensions away
+    Lowering.InputParams,
+    Lowering.lower,
+    Lowering.renameParams,
+    Lowering.eraseHaskellTargets,
+
     -- * AST
     module PostgresqlSyntax.Ast,
   )
@@ -31,4 +37,5 @@ where
 
 import qualified PostgresqlSyntax.Algebra as Algebra
 import PostgresqlSyntax.Ast
+import qualified PostgresqlSyntax.Lowering as Lowering
 import qualified PostgresqlSyntax.Settings as Settings
