@@ -2,7 +2,9 @@ module Ast.PreparableStmtSpec (spec) where
 
 import qualified Data.Text as Text
 import Helpers.Specs
+import PostgresqlSyntax.Algebra (parse, toText)
 import PostgresqlSyntax.Ast.PreparableStmt
+import PostgresqlSyntax.Settings (haskellTargets, nullabilityMarkers)
 import Prelude
 import Test.Hspec
 
@@ -26,6 +28,17 @@ spec = do
     itParses @PreparableStmt "select * from items for update skip locked limit 1"
     itParses @PreparableStmt "select * from items order by id for update limit 1"
     itParses @PreparableStmt "select * from items for update offset 5 limit 10"
+  describe "Haskell targets" $ do
+    itParsesWith @PreparableStmt hs "select $mkUser (id::int8, name::text) from users"
+    itParsesWith @PreparableStmt hs "select $User {uid = id::int8, uname = name::text} from users"
+    itParsesWith @PreparableStmt hs "select id::int8, $f (name::text) from users"
+    itParsesWith @PreparableStmt hs "select $f () from users"
+    itParsesWith @PreparableStmt (hs <> nullabilityMarkers True) "select $mk (a::int8, b::text?) from t"
+    itRejectsWith @PreparableStmt mempty "select $mkUser (id::int8, name::text) from users"
+    itRejectsWith @PreparableStmt mempty "select $User {uid = id::int8} from users"
+    for_ roundtripCases $ \sql ->
+      it ("Renders back faithfully: " <> Text.unpack sql) $
+        (toText mempty <$> parse @PreparableStmt hs sql) `shouldBe` Right sql
   describe "Nesting depth" $ do
     itParsesWithin @PreparableStmt 5 ("select " <> Text.replicate 50 "(" <> "a + b" <> Text.replicate 50 ")")
   describe "Error reporting" $ do
@@ -58,3 +71,14 @@ spec = do
     itReportsSourcePosError @PreparableStmt
       "SELECT id FROM as"
       "1:18 Reserved keyword \"as\" used as an identifier. If that's what you intend, you have to wrap it in double quotes.\n"
+  where
+    hs = haskellTargets True
+    -- Written in the renderer's canonical form (uppercase keywords, spaced
+    -- casts) so that parse-then-render is the identity on the string.
+    roundtripCases =
+      [ "SELECT $mkUser (id :: int8, name :: text) FROM users",
+        "SELECT $f () FROM users",
+        "SELECT $Mod.Mk (a) FROM t",
+        "SELECT $User {uid = id :: int8, uname = $f (name :: text)} FROM users",
+        "SELECT a, $f (b), $R {c = d} FROM t"
+      ]
