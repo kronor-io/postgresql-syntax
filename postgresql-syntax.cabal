@@ -230,6 +230,7 @@ library internal
     PostgresqlSyntax.Helpers.Shrinks
     PostgresqlSyntax.Helpers.TextBuilders
     PostgresqlSyntax.KeywordSet
+    PostgresqlSyntax.Lowering
     PostgresqlSyntax.Predicate
     PostgresqlSyntax.Prelude
     PostgresqlSyntax.Settings
@@ -239,6 +240,7 @@ library internal
     base >=4.12 && <5,
     bytestring >=0.10 && <0.13,
     case-insensitive >=1.2.1 && <2,
+    containers >=0.6 && <0.9,
     hashable >=1.3.5 && <2,
     headed-megaparsec >=0.2.0.1 && <0.3,
     megaparsec >=9.2 && <10,
@@ -417,6 +419,7 @@ test-suite hspec-test
     Ast.XconstSpec
     Helpers.Expectations
     Helpers.Specs
+    LoweringSpec
     Spec
 
   ghc-options:

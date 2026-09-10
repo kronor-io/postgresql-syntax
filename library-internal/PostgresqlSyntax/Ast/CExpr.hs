@@ -16,6 +16,7 @@ import PostgresqlSyntax.Ast.FuncExpr
 import PostgresqlSyntax.Ast.Ident
 import PostgresqlSyntax.Ast.ImplicitRow
 import PostgresqlSyntax.Ast.Indirection
+import qualified PostgresqlSyntax.Ast.Indirection as Indirection
 import {-# SOURCE #-} PostgresqlSyntax.Ast.SelectWithParens (SelectWithParens)
 import qualified PostgresqlSyntax.Extras.NonEmpty as NonEmpty
 import qualified PostgresqlSyntax.Extras.TextBuilder as TextBuilder
@@ -24,6 +25,7 @@ import qualified PostgresqlSyntax.Helpers.Parsers as Parsers
 import qualified PostgresqlSyntax.Helpers.TextBuilders as TextBuilders
 import PostgresqlSyntax.Prelude
 import PostgresqlSyntax.Settings (Settings)
+import qualified PostgresqlSyntax.Settings as Settings
 import qualified Test.QuickCheck as Qc
 
 -- |
@@ -88,7 +90,7 @@ instance IsAst CExpr where
 customizedParser :: Settings -> Parser Ident -> Parser CExpr
 customizedParser settings colIdParser =
   asum
-    [ ParamCExpr <$> (Parsers.char '$' *> Parsers.decimal <* Parser.endHead) <*> optional (Parsers.space *> parser settings),
+    [ ParamCExpr <$> (Parsers.char '$' *> Parsers.decimal <* Parser.endHead) <*> optional (Parsers.space *> paramIndirectionParser),
       CaseCExpr <$> parser settings,
       ExplicitRowCExpr <$> parser settings,
       Parsers.inParensWithClause (Parsers.keyword "grouping") (GroupingCExpr . ExprList <$> Parsers.sep1 Parsers.commaSeparator (parser settings)),
@@ -111,6 +113,14 @@ customizedParser settings colIdParser =
       ColumnrefCExpr <$> customizedColumnref
     ]
   where
+    -- The Kronor @.$field@ Haskell selector is confined to this one position:
+    -- only the indirection of a @$n@ parameter placeholder may carry it, never
+    -- an ordinary column reference's.
+    paramIndirectionParser =
+      if Settings.resolveHaskellParamFields settings
+        then Indirection.hsParser settings
+        else parser settings
+
     customizedColumnref = do
       a <- Parser.wrapToHead colIdParser
       Parser.endHead

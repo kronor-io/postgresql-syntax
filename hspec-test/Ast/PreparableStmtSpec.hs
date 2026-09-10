@@ -4,7 +4,7 @@ import qualified Data.Text as Text
 import Helpers.Specs
 import PostgresqlSyntax.Algebra (parse, toText)
 import PostgresqlSyntax.Ast.PreparableStmt
-import PostgresqlSyntax.Settings (haskellTargets, nullabilityMarkers)
+import PostgresqlSyntax.Settings (haskellParamFields, haskellTargets, nullabilityMarkers)
 import Prelude
 import Test.Hspec
 
@@ -71,6 +71,24 @@ spec = do
     itReportsSourcePosError @PreparableStmt
       "SELECT id FROM as"
       "1:18 Reserved keyword \"as\" used as an identifier. If that's what you intend, you have to wrap it in double quotes.\n"
+  describe "Haskell param fields" $ do
+    itParsesWith @PreparableStmt hsParams "select $1.$field::int8"
+    itParsesWith @PreparableStmt hsParams "select $1.$a::int8, $1.$b::text"
+    itParsesWith @PreparableStmt hsParams "select $1.$a::int8, $1.$a::int8"
+    itParsesWith @PreparableStmt hsParams "select $2.$a::int8, $1::text"
+    itParsesWith @PreparableStmt hsParams "insert into a (b, c) values ($1.$b::int8, $1.$c::text)"
+    itParsesWith @PreparableStmt hsParams "select * from a where id = $1.$id::uuid"
+    -- Combined with the nullability markers, which are lexically independent:
+    -- @?@ suffixes a typename, @$@ prefixes a field name.
+    itParsesWith @PreparableStmt (nullabilityMarkers True <> hsParams) "select $1.$a::int8?"
+    itParsesWith @PreparableStmt (nullabilityMarkers True <> hsParams) "select $1.$a::text?, $1.$b::int8[]?"
+    -- Off by default: standard Postgres parsing is unchanged.
+    itRejectsWith @PreparableStmt mempty "select $1.$field::int8"
+    itRejectsWith @PreparableStmt mempty "select $1.$a::int8, $1.$b::text"
+    -- The extension is confined to the @$n@ position: a Haskell field after
+    -- an ordinary column reference stays a parse error even with it on.
+    itRejectsWith @PreparableStmt hsParams "select col.$field"
+    itRejectsWith @PreparableStmt hsParams "select col.$field::int8"
   where
     hs = haskellTargets True
     -- Written in the renderer's canonical form (uppercase keywords, spaced
@@ -82,3 +100,4 @@ spec = do
         "SELECT $User {uid = id :: int8, uname = $f (name :: text)} FROM users",
         "SELECT a, $f (b), $R {c = d} FROM t"
       ]
+    hsParams = haskellParamFields True
